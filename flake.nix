@@ -45,7 +45,7 @@
       formatter.x86_64-linux = treefmtEval.config.build.wrapper;
 
       packages.x86_64-linux = {
-        defaut = sops-init-gcs;
+        default = sops-init-gcs;
         sops-init-gcs = sops-init-gcs;
       };
 
