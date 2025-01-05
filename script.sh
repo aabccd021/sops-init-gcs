@@ -83,7 +83,7 @@ gcloud iam service-accounts \
 
 echo_blue "exit_code: $exit_code" >&2
 
-if [ $exit_code -ne 0 ]; then
+if [ $exit_code -eq 1 ]; then
   echo_blue "Creating service account $service_account_name" >&2
   gcloud iam service-accounts create "$service_account_name" \
     --description="Service account for GCS upload/download" \
