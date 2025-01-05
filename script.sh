@@ -2,7 +2,7 @@
 set -eu
 
 echo_blue() {
-  printf "\033[34m%s\033[0m\n" "$1"
+  printf "\033[34mINFO:\033[0m %s\n" "$1"
 }
 
 project_id=""
@@ -81,6 +81,8 @@ gcloud iam service-accounts \
   >"$service_account_details" ||
   exit_code=$?
 
+echo_blue "exit_code: $exit_code" >&2
+
 if [ $exit_code -ne 0 ]; then
   echo_blue "Creating service account $service_account_name" >&2
   gcloud iam service-accounts create "$service_account_name" \
@@ -114,7 +116,9 @@ echo_blue "Creating new service account key" >&2
 secret=$(
   gcloud iam service-accounts keys create - \
     --iam-account="$service_account_email" \
-    --project="$project_id"
+    --project="$project_id" |
+    jq -R -s '.' |
+    jq -r @json
 )
 
 sops \
