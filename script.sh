@@ -2,7 +2,7 @@
 set -eu
 
 echo_blue() {
-  printf "\033[0;34m%s\033[0m\n" "$1"
+  printf "\033[0;34m%s\033[0m\n" "$*"
 }
 
 project_id=""
