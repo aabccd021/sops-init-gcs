@@ -2,7 +2,7 @@
 set -eu
 
 echo_blue() {
-  printf "\033[0;34m%s\033[0m\n" "$*"
+  printf "\033[34m%s\033[0m\n" "$1"
 }
 
 project_id=""
@@ -71,12 +71,15 @@ else
   echo_blue "https://console.cloud.google.com/storage/browser/$bucket_name?project=$project_id"
 fi
 
-service_account_details=$(
-  gcloud iam service-accounts \
-    describe "$service_account_email" \
-    --project="$project_id"
-)
-exit_code=$?
+service_account_details=$(mktemp)
+chmod 600 "$service_account_details"
+
+exit_code=0
+gcloud iam service-accounts \
+  describe "$service_account_email" \
+  --project="$project_id" \
+  >"$service_account_details" ||
+  exit_code=$?
 
 if [ $exit_code -ne 0 ]; then
   echo_blue "Creating service account $service_account_name" >&2
@@ -86,8 +89,7 @@ if [ $exit_code -ne 0 ]; then
     --project="$project_id"
 else
   service_account_id=$(
-    echo_blue "$service_account_details" |
-      grep ^uniqueId: |
+    grep ^uniqueId: "$service_account_details" |
       cut -d' ' -f2 |
       tr -d "'"
   )
