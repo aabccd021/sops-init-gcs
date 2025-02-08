@@ -2,16 +2,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     treefmt-nix.url = "github:numtide/treefmt-nix";
-    project-utils = {
-      url = "github:aabccd021/project-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, treefmt-nix, project-utils }:
+  outputs = { self, nixpkgs, treefmt-nix, }:
     let
-
-      utilPkgs = project-utils.packages.x86_64-linux;
 
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
 
@@ -26,8 +20,6 @@
         settings.formatter.shellcheck.options = [ "-s" "sh" ];
 
       };
-
-      scripts.checkpoint = utilPkgs.checkpoint;
 
       sops-init-gcs = pkgs.writeShellApplication {
         name = "sops-init-gcs";
@@ -53,13 +45,6 @@
         sops-init-gcs = sops-init-gcs;
         formatting = treefmtEval.config.build.check self;
       };
-
-      apps.x86_64-linux = builtins.mapAttrs
-        (name: script: {
-          type = "app";
-          program = "${script}/bin/${name}";
-        })
-        scripts;
 
     };
 }
