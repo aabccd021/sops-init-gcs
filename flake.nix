@@ -14,10 +14,10 @@
         programs.nixpkgs-fmt.enable = true;
         programs.prettier.enable = true;
         settings.formatter.prettier.excludes = [ "secrets.yaml" ];
-
         programs.shfmt.enable = true;
         programs.shellcheck.enable = true;
         settings.formatter.shellcheck.options = [ "-s" "sh" ];
+        settings.global.excludes = [ "LICENSE" ];
 
       };
 
