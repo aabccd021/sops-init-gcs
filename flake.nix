@@ -11,7 +11,6 @@
     let
 
       overlay = (final: prev: {
-
         sops-init-gcs = final.writeShellApplication {
           name = "sops-init-gcs";
           runtimeInputs = [
@@ -21,7 +20,6 @@
           ];
           text = builtins.readFile ./script.sh;
         };
-
       });
 
       pkgs = import nixpkgs {
