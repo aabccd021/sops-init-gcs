@@ -1,4 +1,7 @@
 {
+
+  nixConfig.allow-import-from-derivation = false;
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     treefmt-nix.url = "github:numtide/treefmt-nix";
@@ -7,7 +10,24 @@
   outputs = { self, nixpkgs, treefmt-nix, }:
     let
 
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      overlay = (final: prev: {
+
+        sops-init-gcs = final.writeShellApplication {
+          name = "sops-init-gcs";
+          runtimeInputs = [
+            final.google-cloud-sdk
+            final.jq
+            final.sops
+          ];
+          text = builtins.readFile ./script.sh;
+        };
+
+      });
+
+      pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        overlays = [ overlay ];
+      };
 
       treefmtEval = treefmt-nix.lib.evalModule pkgs {
         projectRootFile = "flake.nix";
@@ -18,17 +38,6 @@
         programs.shellcheck.enable = true;
         settings.formatter.shellcheck.options = [ "-s" "sh" ];
         settings.global.excludes = [ "LICENSE" ];
-
-      };
-
-      sops-init-gcs = pkgs.writeShellApplication {
-        name = "sops-init-gcs";
-        runtimeInputs = [
-          pkgs.google-cloud-sdk
-          pkgs.jq
-          pkgs.sops
-        ];
-        text = builtins.readFile ./script.sh;
       };
 
     in
@@ -37,14 +46,16 @@
       formatter.x86_64-linux = treefmtEval.config.build.wrapper;
 
       packages.x86_64-linux = {
-        default = sops-init-gcs;
-        sops-init-gcs = sops-init-gcs;
+        default = pkgs.sops-init-gcs;
+        sops-init-gcs = pkgs.sops-init-gcs;
       };
 
       checks.x86_64-linux = {
-        sops-init-gcs = sops-init-gcs;
+        sops-init-gcs = pkgs.sops-init-gcs;
         formatting = treefmtEval.config.build.check self;
       };
+
+      overlays.default = overlay;
 
     };
 }
