@@ -86,9 +86,12 @@ echo_blue "exit_code: $exit_code" >&2
 if [ $exit_code -eq 1 ]; then
   echo_blue "Creating service account $service_account_name" >&2
   gcloud iam service-accounts create "$service_account_name" \
-    --description="Service account for GCS upload/download" \
-    --display-name="GCS Uploader" \
+    --display-name="Service Account for bucket $bucket_name" \
     --project="$project_id"
+
+  # Add a delay to allow service account creation to propagate
+  echo_blue "Waiting for service account to be ready..." >&2
+  sleep 10
 else
   service_account_id=$(
     grep ^uniqueId: "$service_account_details" |
@@ -100,9 +103,11 @@ else
   echo_blue "https://console.cloud.google.com/iam-admin/serviceaccounts/details/$service_account_id/keys?project=$project_id"
 fi
 
-gcloud projects add-iam-policy-binding "$project_id" \
+echo_blue "Granting storage object admin permissions on bucket $bucket_name" >&2
+gcloud storage buckets add-iam-policy-binding "gs://$bucket_name" \
   --member="serviceAccount:$service_account_email" \
-  --role="roles/storage.objectAdmin"
+  --role="roles/storage.objectAdmin" \
+  --project="$project_id"
 
 printf "This action will create a new service account key. Continue? [y/N] "
 read -r reply
